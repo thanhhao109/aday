@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>OCBS – Gửi Email Hàng Loạt</title>
+
+<style>
+    :root {
+        --primary: #00953B;
+        --primary-dark: #00692B;
+        --secondary: #F7A600;
+        --bg: #f4fff6;
+        --card: #ffffff;
+        --text: #03310f;
+        --input-bg: #ffffff;
+        --input-border: #bcd4c2;
+    }
+
+    /* DARK MODE */
+    body.dark {
+        --bg: #0e1812;
+        --card: #15251b;
+        --text: #d9ffe6;
+        --input-bg: #1d3124;
+        --input-border: #335a42;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 0;
+        transition: 0.3s;
+    }
+
+    /* HEADER */
+    .header-wrapper {
+        width: 450px;
+        margin: 25px auto 0 auto;
+    }
+
+    .header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        padding: 14px 22px;
+        border-radius: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .header .title {
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .toggle-theme {
+        background: rgba(255,255,255,0.25);
+        padding: 7px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.25s;
+        font-weight: 600;
+    }
+    .toggle-theme:hover {
+        background: rgba(255,255,255,0.5);
+    }
+
+    /* MAIN CARD */
+    .container {
+        width: 950px;
+        margin: 30px auto;
+        background: var(--card);
+        padding: 32px;
+        border-radius: 24px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity:0; transform: translateY(20px); }
+        to   { opacity:1; transform: translateY(0); }
+    }
+
+    h2 {
+        text-align: center;
+        color: var(--primary);
+        font-size: 22px;
+        margin-bottom: 25px;
+        font-weight: 700;
+    }
+
+    label {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    input[type=text],
+    input[type=file] {
+        width: 100%;
+        padding: 14px;
+        border-radius: 16px;
+        border: 2px solid var(--input-border);
+        background: var(--input-bg);
+        font-size: 15px;
+        box-sizing: border-box;
+        margin-bottom: 18px;
+        transition: 0.25s;
+    }
+
+    input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 8px rgba(0,149,59,0.35);
+        outline: none;
+    }
+
+    /* BUTTON */
+    button {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 16px;
+        font-size: 16px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ffdd6b, var(--secondary));
+        cursor: pointer;
+        transition: 0.25s;
+    }
+
+    button:hover {
+        transform: scale(1.04);
+        box-shadow: 0 6px 20px rgba(247, 166, 0, 0.35);
+    }
+
+    .link {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .link a {
+        font-weight: 600;
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    /* LOADING */
+    #loadingOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(2px);
+        z-index: 999;
+        text-align: center;
+        padding-top: 150px;
+    }
+
+    .loader-logo {
+        width: 95px;
+        animation: pulse 1.6s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+        0% { opacity:0.8; transform: scale(1); }
+        50% { opacity:1; transform: scale(1.15); }
+        100% { opacity:0.85; transform: scale(1); }
+    }
+
+    .loader-spin {
+        margin-top: 15px;
+        width: 34px;
+        height: 34px;
+        border: 4px solid #cfe8d6;
+        border-top: 4px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left:auto;
+        margin-right:auto;
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* POPUP */
+    #popup {
+        display:none;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 25px;
+        background: linear-gradient(135deg, #2ecc71, var(--primary));
+        color: white;
+        border-radius: 16px;
+        font-weight: 600;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        animation: slide 0.45s ease-out;
+    }
+
+    @keyframes slide {
+        from { opacity:0; transform: translateX(40px); }
+        to   { opacity:1; transform: translateX(0); }
+    }
+</style>
+
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header-wrapper">
+    <div class="header">
+        <div class="title">OCBS Internal Mail Tool</div>
+        <div class="toggle-theme" onclick="toggleMode()">🌗 Dark / Light</div>
+    </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+    <img src="{{ url_for('static', filename='ocbslogo.png') }}" class="loader-logo">
+    <div class="loader-spin"></div>
+</div>
+
+<!-- SUCCESS POPUP -->
+<div id="popup">✔ Đã gửi email hàng loạt!</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container">
+
+    <h2>Gửi Email Hàng Loạt</h2>
+
+    <form id="bulkForm" method="POST" enctype="multipart/form-data">
+
+        <!-- SUBJECT EMAIL -->
+        <label>Tiêu đề email</label>
+        <input type="text" name="subject" placeholder="Nhập tiêu đề email..." required>
+
+        <!-- EXCEL INPUT -->
+        <label>Chọn file Excel (EMAIL – PNG – PDF)</label>
+        <input type="file" name="excel" accept=".xlsx,.xls" required>
+
+        <!-- CC-->
+         <label>CC</label>
+        <input type="text" name="cc_list" placeholder="abc@ocbs.com.vn; manager@ocbs.com.vn">
+
+
+        <button type="submit">Gửi Email Hàng Loạt</button>
+    </form>
+
+</div>
+
+<script>
+    const bulkForm = document.getElementById("bulkForm");
+    const loading = document.getElementById("loadingOverlay");
+    const popup = document.getElementById("popup");
+
+    bulkForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        loading.style.display = "block";
+
+        let formData = new FormData(bulkForm);
+
+        let response = await fetch("/bulk", {
+            method: "POST",
+            body: formData
+        });
+
+        loading.style.display = "none";
+
+        if (response.ok) {
+            popup.style.display = "block";
+            setTimeout(() => popup.style.display = "none", 3500);
+        }
+    });
+
+    function toggleMode() {
+        document.body.classList.toggle("dark");
+    }
+</script>
+
+</body>
+</html>
